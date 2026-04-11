@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using PersonalFinance.Application.Interfaces;
 using PersonalFinance.Domain.Entities;
 
 namespace PersonalFinance.Infrastructure;
 
-public class FinanceDbContext(DbContextOptions<FinanceDbContext> options) : DbContext(options)
+public class FinanceDbContext(DbContextOptions<FinanceDbContext> options) : DbContext(options), IFinanceDbContext
 {
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<ExpenseArticle> ExpenseArticles => Set<ExpenseArticle>();
