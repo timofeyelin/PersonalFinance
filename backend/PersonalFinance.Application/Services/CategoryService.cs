@@ -39,7 +39,7 @@ public class CategoryService(IFinanceDbContext context) : ICategoryService
         return new CategoryResponse(category.Id, category.Name, category.MonthlyBudget, category.IsActive);
     }
 
-    public async Task<ErrorOr<(List<CategoryResponse> Items, int TotalCount)>> GetAllAsync(
+    public async Task<ErrorOr<PagedResponse<CategoryResponse>>> GetAllAsync(
         int pageNumber, 
         int pageSize, 
         CancellationToken cancellationToken = default)
@@ -57,7 +57,7 @@ public class CategoryService(IFinanceDbContext context) : ICategoryService
         var responses = items.Select(c => 
             new CategoryResponse(c.Id, c.Name, c.MonthlyBudget, c.IsActive)).ToList();
 
-        return (responses, totalCount);
+        return new PagedResponse<CategoryResponse>(responses, totalCount);
     }
 
     public async Task<decimal> GetTotalBudgetAsync(CancellationToken cancellationToken = default)
@@ -95,9 +95,18 @@ public class CategoryService(IFinanceDbContext context) : ICategoryService
         CancellationToken cancellationToken = default)
     {
         var category = await context.Categories
+            .Include(c => c.Articles)
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
 
         if (category is null) return Error.NotFound("Category.NotFound", "Категория не найдена.");
+        
+        if (category.IsActive && !request.IsActive)
+        {
+            foreach (var article in category.Articles)
+            {
+                article.IsActive = false;
+            }
+        }
 
         category.Name = request.Name;
         category.MonthlyBudget = request.MonthlyBudget;

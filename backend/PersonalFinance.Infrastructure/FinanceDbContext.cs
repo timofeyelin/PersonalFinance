@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using PersonalFinance.Application.Interfaces;
 using PersonalFinance.Domain.Entities;
 
@@ -50,5 +51,9 @@ public class FinanceDbContext(DbContextOptions<FinanceDbContext> options) : DbCo
                 .HasForeignKey(t => t.ArticleId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+    }
+    public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        return Database.BeginTransactionAsync(cancellationToken);
     }
 }

@@ -13,7 +13,7 @@ public interface ICategoryService
         Guid id, 
         CancellationToken cancellationToken = default);
 
-    Task<ErrorOr<(List<CategoryResponse> Items, int TotalCount)>> GetAllAsync(
+    Task<ErrorOr<PagedResponse<CategoryResponse>>> GetAllAsync(
         int pageNumber, 
         int pageSize, 
         CancellationToken cancellationToken = default);

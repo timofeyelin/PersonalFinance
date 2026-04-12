@@ -13,7 +13,7 @@ public interface IExpenseArticleService
         Guid id, 
         CancellationToken cancellationToken = default);
 
-    Task<ErrorOr<(List<ArticleResponse> Items, int TotalCount)>> GetByCategoryIdAsync(
+    Task<ErrorOr<PagedResponse<ArticleResponse>>> GetByCategoryIdAsync(
         Guid categoryId, 
         int pageNumber, 
         int pageSize, 
@@ -21,7 +21,7 @@ public interface IExpenseArticleService
 
     Task<ErrorOr<Success>> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 
-    Task<ErrorOr<(List<ArticleResponse> Items, int TotalCount)>> GetAllAsync(
+    Task<ErrorOr<PagedResponse<ArticleResponse>>> GetAllAsync(
         int page, 
         int size, 
         CancellationToken cancellationToken = default);

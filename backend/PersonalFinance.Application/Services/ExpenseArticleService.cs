@@ -49,7 +49,7 @@ public class ExpenseArticleService(IFinanceDbContext context) : IExpenseArticleS
         return new ArticleResponse(article.Id, article.Name, article.CategoryId, article.Category.Name, article.IsActive);
     }
 
-    public async Task<ErrorOr<(List<ArticleResponse> Items, int TotalCount)>> GetByCategoryIdAsync(
+    public async Task<ErrorOr<PagedResponse<ArticleResponse>>> GetByCategoryIdAsync(
         Guid categoryId, 
         int pageNumber, 
         int pageSize, 
@@ -70,8 +70,8 @@ public class ExpenseArticleService(IFinanceDbContext context) : IExpenseArticleS
 
         var responses = items.Select(a => 
             new ArticleResponse(a.Id, a.Name, a.CategoryId, a.Category.Name, a.IsActive)).ToList();
-
-        return (responses, totalCount);
+        
+        return new PagedResponse<ArticleResponse>(responses, totalCount);
     }
 
     public async Task<ErrorOr<Success>> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
@@ -96,7 +96,7 @@ public class ExpenseArticleService(IFinanceDbContext context) : IExpenseArticleS
         return Result.Success;
     }
 
-    public async Task<ErrorOr<(List<ArticleResponse> Items, int TotalCount)>> GetAllAsync(
+    public async Task<ErrorOr<PagedResponse<ArticleResponse>>> GetAllAsync(
         int page, 
         int size, 
         CancellationToken cancellationToken = default)
@@ -114,7 +114,7 @@ public class ExpenseArticleService(IFinanceDbContext context) : IExpenseArticleS
         var responses = items.Select(a => 
             new ArticleResponse(a.Id, a.Name, a.CategoryId, a.Category.Name, a.IsActive)).ToList();
 
-        return (responses, totalCount);
+        return new PagedResponse<ArticleResponse>(responses, totalCount);
     }
 
     public async Task<ErrorOr<ArticleResponse>> UpdateAsync(

@@ -12,72 +12,49 @@ public class TransactionService(IFinanceDbContext context) : ITransactionService
 
     public async Task<ErrorOr<TransactionResponse>> CreateAsync(
         CreateTransactionRequest request,
-        CancellationToken cancellationToken = default
-    )
+        CancellationToken cancellationToken = default)
     {
-        if (request.Amount <= 0)
-        {
-            return Error.Validation(
-                "Transaction.Amount",
-                "Сумма транзакции должна быть положительной."
-            );
-        }
+        if (request.Amount <= 0) return Error.Validation("Transaction.Amount", "Сумма транзакции должна быть положительной.");
 
-        var article = await context
-            .ExpenseArticles.AsNoTracking()
+        var article = await context.ExpenseArticles
+            .AsNoTracking()
+            .Include(a => a.Category)
             .FirstOrDefaultAsync(a => a.Id == request.ArticleId, cancellationToken);
 
-        if (article is null)
+        if (article is null) return Error.NotFound("Article.NotFound", "Статья не найдена.");
+        if (!article.IsActive || !article.Category.IsActive) return Error.Validation("Article.Inactive", "Статья или категория неактивны.");
+
+        await using var dbTransaction = await context.BeginTransactionAsync(cancellationToken);
+
+        try
         {
-            return Error.NotFound(
-                "Article.NotFound",
-                $"Статья расходов с ID '{request.ArticleId}' не найдена."
-            );
+            var currentTotal = await context.Transactions
+                .FromSqlInterpolated($"SELECT * FROM Transactions WITH (UPDLOCK, HOLDLOCK) WHERE [Date] = {request.Date}")
+                .SumAsync(t => (decimal?)t.Amount, cancellationToken) ?? 0m;
+
+            if (currentTotal + request.Amount > DailyLimit)
+            {
+                return Error.Validation("Transaction.LimitExceeded", "Превышен дневной лимит транзакций в 1 000 000 руб.");
+            }
+
+            var transaction = new Transaction
+            {
+                Id = Guid.NewGuid(), Date = request.Date, Amount = request.Amount,
+                Comment = request.Comment, ArticleId = request.ArticleId,
+            };
+
+            context.Transactions.Add(transaction);
+            await context.SaveChangesAsync(cancellationToken);
+            
+            await dbTransaction.CommitAsync(cancellationToken);
+
+            return new TransactionResponse(transaction.Id, transaction.Date, transaction.Amount, transaction.Comment, transaction.ArticleId, article.Name);
         }
-
-        if (!article.IsActive)
+        catch (Exception)
         {
-            return Error.Validation(
-                "Article.Inactive",
-                "Нельзя создавать транзакции по неактивной статье."
-            );
+            await dbTransaction.RollbackAsync(cancellationToken);
+            throw;
         }
-
-        var currentTotal =
-            await context
-                .Transactions.AsNoTracking()
-                .Where(t => t.Date == request.Date)
-                .SumAsync(t => (decimal?)t.Amount, cancellationToken)
-            ?? 0m;
-
-        if (currentTotal + request.Amount > DailyLimit)
-        {
-            return Error.Validation(
-                "Transaction.LimitExceeded",
-                "Превышен дневной лимит транзакций в 1 000 000 руб."
-            );
-        }
-
-        var transaction = new Transaction
-        {
-            Id = Guid.NewGuid(),
-            Date = request.Date,
-            Amount = request.Amount,
-            Comment = request.Comment,
-            ArticleId = request.ArticleId,
-        };
-
-        context.Transactions.Add(transaction);
-        await context.SaveChangesAsync(cancellationToken);
-
-        return new TransactionResponse(
-            transaction.Id,
-            transaction.Date,
-            transaction.Amount,
-            transaction.Comment,
-            transaction.ArticleId,
-            article.Name
-        );
     }
 
     public async Task<ErrorOr<TransactionResponse>> GetByIdAsync(
@@ -105,7 +82,7 @@ public class TransactionService(IFinanceDbContext context) : ITransactionService
         );
     }
 
-    public async Task<ErrorOr<(List<TransactionResponse> Items, int TotalCount)>> GetByMonthAsync(
+    public async Task<ErrorOr<PagedResponse<TransactionResponse>>> GetByMonthAsync(
         int year,
         int month,
         int pageNumber,
@@ -141,7 +118,7 @@ public class TransactionService(IFinanceDbContext context) : ITransactionService
             ))
             .ToList();
 
-        return (responses, totalCount);
+        return new PagedResponse<TransactionResponse>(responses, totalCount);
     }
 
     public async Task<ErrorOr<Success>> DeleteAsync(
@@ -165,7 +142,7 @@ public class TransactionService(IFinanceDbContext context) : ITransactionService
         return Result.Success;
     }
 
-    public async Task<ErrorOr<(List<TransactionResponse> Items, int TotalCount)>> GetAllAsync(
+    public async Task<ErrorOr<PagedResponse<TransactionResponse>>> GetAllAsync(
         int page,
         int size,
         CancellationToken cancellationToken = default
@@ -193,10 +170,10 @@ public class TransactionService(IFinanceDbContext context) : ITransactionService
             ))
             .ToList();
 
-        return (responses, totalCount);
+        return new PagedResponse<TransactionResponse>(responses, totalCount);
     }
 
-    public async Task<ErrorOr<(List<TransactionResponse> Items, int TotalCount)>> GetByDateAsync(
+    public async Task<ErrorOr<PagedResponse<TransactionResponse>>> GetByDateAsync(
         DateOnly date,
         int page,
         int size,
@@ -225,7 +202,7 @@ public class TransactionService(IFinanceDbContext context) : ITransactionService
             ))
             .ToList();
 
-        return (responses, totalCount);
+        return new PagedResponse<TransactionResponse>(responses, totalCount);
     }
 
     public async Task<ErrorOr<TransactionResponse>> UpdateAsync(
@@ -249,6 +226,21 @@ public class TransactionService(IFinanceDbContext context) : ITransactionService
         if (transaction is null)
         {
             return Error.NotFound("Transaction.NotFound", "Транзакция не найдена.");
+        }
+
+        var currentTotalForDate =
+            await context
+                .Transactions.AsNoTracking()
+                .Where(t => t.Date == request.Date && t.Id != id)
+                .SumAsync(t => (decimal?)t.Amount, cancellationToken)
+            ?? 0m;
+
+        if (currentTotalForDate + request.Amount > DailyLimit)
+        {
+            return Error.Validation(
+                "Transaction.LimitExceeded",
+                "Превышен дневной лимит транзакций в 1 000 000 руб."
+            );
         }
 
         var articleName = transaction.Article.Name;

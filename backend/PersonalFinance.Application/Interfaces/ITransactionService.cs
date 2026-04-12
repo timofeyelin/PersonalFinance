@@ -15,7 +15,7 @@ public interface ITransactionService
         CancellationToken cancellationToken = default
     );
 
-    Task<ErrorOr<(List<TransactionResponse> Items, int TotalCount)>> GetByMonthAsync(
+    Task<ErrorOr<PagedResponse<TransactionResponse>>> GetByMonthAsync(
         int year,
         int month,
         int pageNumber,
@@ -28,12 +28,12 @@ public interface ITransactionService
         CancellationToken cancellationToken = default
     );
 
-    Task<ErrorOr<(List<TransactionResponse> Items, int TotalCount)>> GetAllAsync(
+    Task<ErrorOr<PagedResponse<TransactionResponse>>> GetAllAsync(
         int page, 
         int size, 
         CancellationToken cancellationToken = default);
 
-    Task<ErrorOr<(List<TransactionResponse> Items, int TotalCount)>> GetByDateAsync(
+    Task<ErrorOr<PagedResponse<TransactionResponse>>> GetByDateAsync(
         DateOnly date, 
         int page, 
         int size, 
