@@ -40,7 +40,7 @@ public class TransactionService(IFinanceDbContext context) : ITransactionService
             var transaction = new Transaction
             {
                 Id = Guid.NewGuid(), Date = request.Date, Amount = request.Amount,
-                Comment = request.Comment, ArticleId = request.ArticleId,
+                Comment = request.Comment, ArticleId = request.ArticleId, Emoji = request.Emoji,
             };
 
             context.Transactions.Add(transaction);
@@ -48,7 +48,7 @@ public class TransactionService(IFinanceDbContext context) : ITransactionService
             
             await dbTransaction.CommitAsync(cancellationToken);
 
-            return new TransactionResponse(transaction.Id, transaction.Date, transaction.Amount, transaction.Comment, transaction.ArticleId, article.Name);
+            return new TransactionResponse(transaction.Id, transaction.Date, transaction.Amount, transaction.Comment, transaction.ArticleId, article.Name, transaction.Emoji);
         }
         catch (Exception)
         {
@@ -78,7 +78,8 @@ public class TransactionService(IFinanceDbContext context) : ITransactionService
             transaction.Amount,
             transaction.Comment,
             transaction.ArticleId,
-            transaction.Article.Name
+            transaction.Article.Name,
+            transaction.Emoji
         );
     }
 
@@ -114,7 +115,8 @@ public class TransactionService(IFinanceDbContext context) : ITransactionService
                 t.Amount,
                 t.Comment,
                 t.ArticleId,
-                t.Article.Name
+                t.Article.Name,
+                t.Emoji
             ))
             .ToList();
 
@@ -166,7 +168,8 @@ public class TransactionService(IFinanceDbContext context) : ITransactionService
                 t.Amount,
                 t.Comment,
                 t.ArticleId,
-                t.Article.Name
+                t.Article.Name,
+                t.Emoji
             ))
             .ToList();
 
@@ -198,7 +201,8 @@ public class TransactionService(IFinanceDbContext context) : ITransactionService
                 t.Amount,
                 t.Comment,
                 t.ArticleId,
-                t.Article.Name
+                t.Article.Name,
+                t.Emoji
             ))
             .ToList();
 
@@ -279,6 +283,7 @@ public class TransactionService(IFinanceDbContext context) : ITransactionService
         transaction.Date = request.Date;
         transaction.Amount = request.Amount;
         transaction.Comment = request.Comment;
+        transaction.Emoji = request.Emoji;
 
         await context.SaveChangesAsync(cancellationToken);
 
@@ -288,7 +293,8 @@ public class TransactionService(IFinanceDbContext context) : ITransactionService
             transaction.Amount,
             transaction.Comment,
             transaction.ArticleId,
-            articleName
+            articleName,
+            transaction.Emoji
         );
     }
 

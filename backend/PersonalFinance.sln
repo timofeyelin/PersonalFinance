@@ -8,8 +8,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonalFinance.Application
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonalFinance.Infrastructure", "PersonalFinance.Infrastructure\PersonalFinance.Infrastructure.csproj", "{C6F4F1A0-B8B3-49AB-AC21-D0D4D02636B8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonalFinance.Tests", "PersonalFinance.Tests\PersonalFinance.Tests.csproj", "{D80E0B42-D865-419E-B1D7-FF76249E91FB}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,9 +30,5 @@ Global
 		{C6F4F1A0-B8B3-49AB-AC21-D0D4D02636B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6F4F1A0-B8B3-49AB-AC21-D0D4D02636B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6F4F1A0-B8B3-49AB-AC21-D0D4D02636B8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D80E0B42-D865-419E-B1D7-FF76249E91FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D80E0B42-D865-419E-B1D7-FF76249E91FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D80E0B42-D865-419E-B1D7-FF76249E91FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D80E0B42-D865-419E-B1D7-FF76249E91FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

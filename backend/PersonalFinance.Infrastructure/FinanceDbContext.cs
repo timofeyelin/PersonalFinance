@@ -44,6 +44,7 @@ public class FinanceDbContext(DbContextOptions<FinanceDbContext> options) : DbCo
             builder.Property(t => t.Date).IsRequired();
 
             builder.Property(t => t.Comment).HasMaxLength(250);
+            builder.Property(t => t.Emoji).HasMaxLength(50);
 
             builder
                 .HasOne(t => t.Article)

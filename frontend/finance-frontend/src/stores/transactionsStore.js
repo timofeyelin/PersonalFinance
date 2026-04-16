@@ -5,6 +5,7 @@ import api from '../api/transactions';
 export const useTransactionsStore = defineStore('transactions', () => {
     const transactions = ref([]);
     const currentDayStatus = ref(null);
+    const dayStatusesCache = ref({});
     const isLoading = ref(false);
     const error = ref(null);
 
@@ -56,6 +57,18 @@ export const useTransactionsStore = defineStore('transactions', () => {
         }
     }
 
+    async function loadDayStatus(date) {
+        if (!dayStatusesCache.value[date]) {
+            try {
+                const response = await api.getDayStatus(date);
+                dayStatusesCache.value[date] = response.data;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        return dayStatusesCache.value[date];
+    }
+
     async function createTransaction(data) {
         const response = await api.create(data);
         transactions.value.push(response.data);
@@ -79,12 +92,14 @@ export const useTransactionsStore = defineStore('transactions', () => {
     return {
         transactions,
         currentDayStatus,
+        dayStatusesCache,
         isLoading,
         error,
         fetchTransactions,
         fetchByMonth,
         fetchByDate,
         fetchDayStatus,
+        loadDayStatus,
         createTransaction,
         updateTransaction,
         deleteTransaction

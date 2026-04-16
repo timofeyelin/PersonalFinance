@@ -6,5 +6,7 @@ public record TransactionResponse(
     decimal Amount,
     string? Comment,
     Guid ArticleId,
-    string ArticleName
+    string ArticleName,
+    string? Emoji
+    
 );

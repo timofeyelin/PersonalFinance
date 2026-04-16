@@ -12,5 +12,6 @@ public record UpdateTransactionRequest(
     [RegularExpression(@"^[^\r\n]*$", ErrorMessage = "Комментарий должен быть однострочным.")]
     string? Comment, 
     
-    Guid ArticleId
+    Guid ArticleId,
+    string? Emoji
 );

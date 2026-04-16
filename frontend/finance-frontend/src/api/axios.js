@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:5244/api',
+  baseURL: 'http://personal-finance.mooo.com/api/api',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
@@ -9,10 +9,10 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.response.use(
-    response => response,
-    error => {
-        return Promise.reject(error);
-    }
+  response => response,
+  error => {
+    return Promise.reject(error);
+  }
 );
 
 export default apiClient;
